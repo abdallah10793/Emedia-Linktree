@@ -1,6 +1,5 @@
-import { Page } from "@/models/Page";
-import { User } from "@/models/User";
-import { Event } from "@/models/Event";
+'use client';
+
 import {
   faDiscord,
   faFacebook,
@@ -19,10 +18,9 @@ import {
   faPhone,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import mongoose from "mongoose";
-import { btoa } from "next/dist/compiled/@edge-runtime/primitives";
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 export const buttonsIcons = {
   email: faEnvelope,
@@ -47,12 +45,54 @@ function buttonLink(key, value) {
   return value;
 }
 
-export default async function UserPage({ params }) {
-  const uri = params.uri;
-  mongoose.connect(process.env.MONGO_URI);
-  const page = await Page.findOne({ uri });
-  // Check if the page was not found
-  if (!page) {
+export default function UserPage({ params }) {
+  const [page, setPage] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPage() {
+      try {
+        const response = await fetch(`/api/page/${params.uri}`);
+        if (response.ok) {
+          const data = await response.json();
+          setPage(data.page);
+          setUser(data.user);
+
+          // Track view
+          await fetch('/api/view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uri: params.uri, page: params.uri }),
+          });
+        } else {
+          setPage(null);
+        }
+      } catch (error) {
+        console.error('Error fetching page:', error);
+        setPage(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPage();
+  }, [params.uri]);
+
+
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!page || !user) {
     return (
       <div
         style={{
@@ -72,29 +112,6 @@ export default async function UserPage({ params }) {
     );
   }
 
-  const user = await User.findOne({ email: page.owner });
-
-  // Optionally, also check if the user was not found
-  if (!user) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          flexDirection: "column",
-        }}
-      >
-        <p
-          style={{ fontSize: "24px", fontWeight: "bold", textAlign: "center" }}
-        >
-          User Not Found
-        </p>
-      </div>
-    );
-  }
-  await Event.create({ uri: uri, page: uri, type: "view" });
   return (
     <div className="bg-white min-h-screen flex flex-col">
       <div className="flex-grow">
@@ -123,32 +140,26 @@ export default async function UserPage({ params }) {
         <div className="max-w-xs mx-auto text-center my-2">
           <p>{page.bio}</p>
         </div>
-      <div className="flex gap-2 justify-center mt-4 pb-4">
-        {Object.keys(page.buttons).filter(buttonKey => buttonKey !== 'github').map((buttonKey) => (
-          <Link
-            key={buttonKey}
-            href={buttonLink(buttonKey, page.buttons[buttonKey])}
-            className="rounded-full bg-white text-blue-950 p-2 flex items-center justify-center hover:bg-gray-200 border border-gray-300"
-          >
-            <FontAwesomeIcon
-              className="w-5 h-5"
-              icon={buttonsIcons[buttonKey]}
-            />
-          </Link>
-        ))}
-      </div>
+        <div className="flex gap-2 justify-center mt-4 pb-4">
+          {Object.keys(page.buttons).filter(buttonKey => buttonKey !== 'github').map((buttonKey) => (
+            <Link
+              key={buttonKey}
+              href={buttonLink(buttonKey, page.buttons[buttonKey])}
+              className="rounded-full bg-white text-blue-950 p-2 flex items-center justify-center hover:bg-gray-200 border border-gray-300"
+            >
+              <FontAwesomeIcon
+                className="w-5 h-5"
+                icon={buttonsIcons[buttonKey]}
+              />
+            </Link>
+          ))}
+
+        </div>
         <div className="max-w-2xl mx-auto grid md:grid-cols-1 gap-6 p-4 px-8">
           {page.links.map((link) => (
             <Link
               key={link.url}
               target="_blank"
-              ping={
-                process.env.URL +
-                "api/click?url=" +
-                btoa(link.url) +
-                "&page=" +
-                page.uri
-              }
               className="bg-white p-2 flex hover:bg-gray-100 rounded-md font-extrabold border-2 border-gray-300"
               href={link.url}
             >
@@ -180,13 +191,16 @@ export default async function UserPage({ params }) {
           ))}
         </div>
       </div>
+
+
+
       <div className="dark:bg-gray-900 py-4 flex justify-center mt-auto">
         <Link href="https://emedia.ae" target="_blank" rel="noopener noreferrer">
           <Image
             src="/assets/logo.webp"
             alt="Emedia Logo"
-            width={200} // Adjust width as needed
-            height={140} // Adjust height as needed
+            width={200}
+            height={140}
             className="h-20 w-auto"
           />
         </Link>

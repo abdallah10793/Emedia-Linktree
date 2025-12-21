@@ -8,6 +8,9 @@ const nextConfig = {
       {
         hostname: 'linktree13.s3.amazonaws.com',
       },
+      {
+        hostname: 'res.cloudinary.com',
+      },
     ],
   }
 }

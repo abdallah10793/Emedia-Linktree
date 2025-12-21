@@ -4,9 +4,8 @@ export async function upload(ev, callbackFn) {
   const file = ev.target.files?.[0];
 
   if (file) {
-
     const uploadPromise = new Promise((resolve, reject) => {
-      const data = new FormData;
+      const data = new FormData();
       data.set('file', file);
       fetch('/api/upload', {
         method: 'POST',
@@ -29,5 +28,6 @@ export async function upload(ev, callbackFn) {
       error: 'Upload error!',
     });
 
+    return uploadPromise;
   }
 }

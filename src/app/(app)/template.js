@@ -3,7 +3,7 @@ import AppSidebar from "@/components/layout/AppSidebar";
 import { Page } from "@/models/Page";
 import { faBars, faLink } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import mongoose from "mongoose";
+import dbConnect from "@/libs/mongoose";
 import { getServerSession } from "next-auth";
 import { headers } from "next/headers";
 import Image from "next/image";
@@ -19,7 +19,7 @@ export default async function AppTemplate({ children, ...rest }) {
   if (!session) {
     return redirect("/");
   }
-  mongoose.connect(process.env.MONGO_URI);
+  await dbConnect();
   const page = await Page.findOne({ owner: session.user.email });
   return (
     <>

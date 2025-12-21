@@ -2,11 +2,11 @@
 import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 import {Page} from "@/models/Page";
 import {User} from "@/models/User";
-import mongoose from "mongoose";
+import dbConnect from "@/libs/mongoose";
 import {getServerSession} from "next-auth";
 
 export async function savePageSettings(formData) {
-  mongoose.connect(process.env.MONGO_URI);
+  await dbConnect();
   const session = await getServerSession(authOptions);
   if (session) {
     const dataKeys = [
@@ -41,7 +41,7 @@ export async function savePageSettings(formData) {
 }
 
 export async function savePageButtons(formData) {
-  mongoose.connect(process.env.MONGO_URI);
+  await dbConnect();
   const session = await getServerSession(authOptions);
   if (session) {
     const buttonsValues = {};
@@ -59,7 +59,7 @@ export async function savePageButtons(formData) {
 }
 
 export async function savePageLinks(links) {
-  mongoose.connect(process.env.MONGO_URI);
+  await dbConnect();
   const session = await getServerSession(authOptions);
   if (session) {
     await Page.updateOne(

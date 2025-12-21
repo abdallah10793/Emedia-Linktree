@@ -31,15 +31,25 @@ export default function PageSettingsForm({ page, user }) {
   }
 
   async function handleCoverImageChange(ev) {
-    await upload(ev, (link) => {
-      setBgImage(link);
-    });
+    try {
+      await upload(ev, (link) => {
+        setBgImage(link);
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
+
   async function handleAvatarImageChange(ev) {
-    await upload(ev, (link) => {
-      setAvatar(link);
-    });
+    try {
+      await upload(ev, (link) => {
+        setAvatar(link);
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
+
   return (
     <div>
       <SectionBox>

@@ -6,7 +6,7 @@ import { Page } from "@/models/Page";
 import { faLink } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { differenceInDays, formatISO9075, isToday } from "date-fns";
-import mongoose from "mongoose";
+import dbConnect from "@/libs/mongoose";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import {
@@ -25,7 +25,7 @@ export const metadata = {
     "Share your links, social profiles, contact info and more on one page",
 };
 export default async function AnalyticsPage() {
-  mongoose.connect(process.env.MONGO_URI);
+  await dbConnect();
   const session = await getServerSession(authOptions);
   if (!session) {
     return redirect("/");
